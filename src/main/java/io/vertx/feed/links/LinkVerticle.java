@@ -5,10 +5,10 @@ import io.vertx.core.Future;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.serviceproxy.ServiceBinder;
 
-public class LinkVertical extends AbstractVerticle {
+public class LinkVerticle extends AbstractVerticle {
 
   public void start(Future<Void> startFeature) throws Exception {
-    
+
     LinksService.create(WebClient.create(vertx), ready -> {
       ServiceBinder serviceBinder = new ServiceBinder(vertx);
       serviceBinder

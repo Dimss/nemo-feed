@@ -1,34 +1,25 @@
 package io.vertx.feed;
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
-import io.vertx.feed.links.LinkVertical;
-import io.vertx.feed.links.LinksService;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
+
 
 public class MainVerticle extends AbstractVerticle {
+  private final static Logger LOGGER = LoggerFactory.getLogger(MainVerticle.class);
 
   @Override
   public void start(Future<Void> startFuture) throws Exception {
-    Future<String> linkVerticalDeployment = Future.future();
-    vertx.deployVerticle(new LinkVertical(), linkVerticalDeployment.completer());
-
-    linkVerticalDeployment.compose(id -> {
-      Future<String> httpVerticalDeployment = Future.future();
-      vertx.deployVerticle(
-        "io.vertx.feed.http.HttpVerticle",
-        new DeploymentOptions().setInstances(1),
-        httpVerticalDeployment.completer());
-      return httpVerticalDeployment;
-    }).setHandler(ar -> {
-      if (ar.succeeded()) {
-        startFuture.complete();
-      } else {
-        startFuture.fail(ar.cause());
-      }
+    vertx.deployVerticle("io.vertx.feed.http.HttpVerticle", ar -> {
+      LOGGER.info("*** HTTP Verticle deployed: " + ar.result());
+    });
+    vertx.deployVerticle("io.vertx.feed.links.LinkVerticle", ar -> {
+      LOGGER.info("*** LINKS Verticle deployed: " + ar.result());
+    });
+    vertx.deployVerticle("io.vertx.feed.likes.LikesVerticle", ar -> {
+      LOGGER.info("*** LIKES Verticle deployed: " + ar.result());
     });
 
-
   }
-
 }
