@@ -20,6 +20,7 @@ public class HttpVerticle extends AbstractVerticle {
     HttpServer httpServer = vertx.createHttpServer();
     Router router = Router.router(vertx);
     router.get("/links").handler(this::usersLinksHandler);
+    router.get("/status").handler(this::serviceStatus);
     httpServer.requestHandler(router::accept).listen(8080, ar -> {
       if (ar.succeeded()) {
         LOGGER.info("HTTP server is running on port 8080");
@@ -50,4 +51,7 @@ public class HttpVerticle extends AbstractVerticle {
     }
   }
 
+  private void serviceStatus(RoutingContext ctx) {
+    ctx.response().end("ok");
+  }
 }
