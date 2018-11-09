@@ -28,6 +28,29 @@ public class LinksServiceImpl implements LinksService {
     readyHandler.handle(Future.succeededFuture(this));
   }
 
+  public LinksService deleteLink(String authToken, String imageId, Handler<AsyncResult<JsonObject>> resultHandler) {
+    LOGGER.info("Deleting link. . .");
+    webClient
+      .delete("links", "/v1/links/"+imageId)
+      .putHeader("X-NEMO-AUTH", authToken)
+      .send(ar -> {
+        if (ar.succeeded()) {
+          HttpResponse<Buffer> response = ar.result();
+          if (response.statusCode() != 200) {
+            LOGGER.error("Error during deleting link, Status code: " + response.statusCode());
+            resultHandler.handle(Future.failedFuture(ar.cause()));
+          } else {
+            LOGGER.info("Links is deleted, sending response");
+            resultHandler.handle(Future.succeededFuture(response.bodyAsJsonObject()));
+          }
+        } else {
+          LOGGER.error("Error during fetching user's links");
+          resultHandler.handle(Future.failedFuture(ar.cause()));
+        }
+      });
+    return this;
+  }
+
   public LinksService getUserLinks(String authToken, Handler<AsyncResult<JsonArray>> resultHandler) {
     LOGGER.info("Fetching user links. . .");
     webClient
@@ -43,14 +66,6 @@ public class LinksServiceImpl implements LinksService {
             LOGGER.info("User links are here, sending response");
             JsonArray ja = response.bodyAsJsonObject().getJsonArray("data");
             resultHandler.handle(Future.succeededFuture(ja));
-
-//            likesService.getImagesLikes(authToken, ja, asyncRes -> {
-//              if (asyncRes.succeeded()) {
-//                resultHandler.handle(Future.succeededFuture(asyncRes.result()));
-//              } else {
-//                resultHandler.handle(Future.failedFuture(ar.cause()));
-//              }
-//            });
           }
         } else {
           LOGGER.error("Error during fetching user's links");

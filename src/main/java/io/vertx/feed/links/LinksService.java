@@ -16,6 +16,9 @@ public interface LinksService {
   @Fluent
   LinksService getUserLinks(String authToken, Handler<AsyncResult<JsonArray>> resultHandler);
 
+  @Fluent
+  LinksService deleteLink(String authToken, String imageId, Handler<AsyncResult<JsonObject>> resultHandler);
+
   static LinksService create(WebClient webClient, LikesService likesService, Handler<AsyncResult<LinksService>> readyHandler) {
     return new LinksServiceImpl(webClient, likesService, readyHandler);
   }

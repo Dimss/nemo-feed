@@ -35,8 +35,10 @@ public class HttpVerticle extends AbstractVerticle {
     router.route().handler(BodyHandler.create());
     router.get("/feed").handler(this::getFeedHandler);
     router.get("/links").handler(this::usersLinksHandler);
+    router.delete("/links/:imageId").handler(this::deleteLink);
     router.get("/status").handler(this::serviceStatus);
     router.get("/likes/:imageId").handler(this::getImageLikesHandler);
+
     router.post("/likes/:imageId").handler(this::addImageLikesHandler);
     router.post("/comments").handler(this::createNewComment);
     // Start HTTP server
@@ -49,6 +51,22 @@ public class HttpVerticle extends AbstractVerticle {
         startFuture.fail(ar.cause());
       }
     });
+  }
+
+  private void deleteLink(RoutingContext ctx) {
+    String authToken = ctx.request().getHeader("X-NEMO-AUTH");
+    String imageId = ctx.request().getParam("imageId");
+    linksService.deleteLink(authToken, imageId, ar -> {
+      if (ar.succeeded()) {
+        ctx
+          .response()
+          .putHeader("content-type", "application/json")
+          .end(ar.result().toString());
+      } else {
+        ctx.fail(ar.cause());
+      }
+    });
+
   }
 
   private void createNewComment(RoutingContext ctx) {
