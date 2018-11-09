@@ -10,17 +10,20 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.feed.MainVerticle;
+import io.vertx.feed.comments.CommentsService;
 import io.vertx.feed.likes.LikesService;
 import io.vertx.feed.links.LinksService;
 
 public class HttpVerticle extends AbstractVerticle {
   private LinksService linksService;
   private LikesService likesService;
+  private CommentsService commentsService;
   private final static Logger LOGGER = LoggerFactory.getLogger(MainVerticle.class);
 
   public void start(Future<Void> startFuture) throws Exception {
     linksService = LinksService.createProxy(vertx, "userLinks");
     likesService = LikesService.createProxy(vertx, "imageLikes");
+    commentsService = CommentsService.createProxy(vertx, "imageComments");
     HttpServer httpServer = vertx.createHttpServer();
     Router router = Router.router(vertx);
     router.get("/feed").handler(this::getFeedHandler);

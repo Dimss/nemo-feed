@@ -20,6 +20,9 @@ public class MainVerticle extends AbstractVerticle {
     vertx.deployVerticle("io.vertx.feed.likes.LikesVerticle", ar -> {
       LOGGER.info("*** LIKES Verticle deployed: " + ar.result());
     });
+    vertx.deployVerticle("io.vertx.feed.comments.CommentsVerticle", ar -> {
+      LOGGER.info("*** COMMENTS Verticle deployed: " + ar.result());
+    });
 
   }
 }
