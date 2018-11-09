@@ -40,8 +40,7 @@ public class CommentsServiceImpl implements CommentsService {
               resultHandler.handle(Future.failedFuture(ar.cause()));
             } else {
               LOGGER.info("Image comments are here, sending response");
-              JsonObject joo = response.bodyAsJsonObject();
-              link.put("likes", response.bodyAsJsonObject().getValue("data"));
+              link.put("comments", response.bodyAsJsonObject().getValue("data"));
               resultArray.add(link);
               // Finish future
               if (ja.size() == resultArray.size())

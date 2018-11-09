@@ -42,20 +42,21 @@ public class LinksServiceImpl implements LinksService {
           } else {
             LOGGER.info("User links are here, sending response");
             JsonArray ja = response.bodyAsJsonObject().getJsonArray("data");
-            likesService.getImagesLikes(authToken, ja, asyncRes -> {
-              if (asyncRes.succeeded()) {
-                resultHandler.handle(Future.succeededFuture(asyncRes.result()));
-              } else {
-                resultHandler.handle(Future.failedFuture(ar.cause()));
-              }
-            });
+            resultHandler.handle(Future.succeededFuture(ja));
+
+//            likesService.getImagesLikes(authToken, ja, asyncRes -> {
+//              if (asyncRes.succeeded()) {
+//                resultHandler.handle(Future.succeededFuture(asyncRes.result()));
+//              } else {
+//                resultHandler.handle(Future.failedFuture(ar.cause()));
+//              }
+//            });
           }
         } else {
           LOGGER.error("Error during fetching user's links");
           resultHandler.handle(Future.failedFuture(ar.cause()));
         }
       });
-
     return this;
   }
 }

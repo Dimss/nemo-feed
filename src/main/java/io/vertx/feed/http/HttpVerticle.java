@@ -3,6 +3,7 @@ package io.vertx.feed.http;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -21,16 +22,20 @@ public class HttpVerticle extends AbstractVerticle {
   private final static Logger LOGGER = LoggerFactory.getLogger(MainVerticle.class);
 
   public void start(Future<Void> startFuture) throws Exception {
+    //Init services
     linksService = LinksService.createProxy(vertx, "userLinks");
     likesService = LikesService.createProxy(vertx, "imageLikes");
     commentsService = CommentsService.createProxy(vertx, "imageComments");
+    // Define HTTP server
     HttpServer httpServer = vertx.createHttpServer();
+    //Define HTTP routes
     Router router = Router.router(vertx);
     router.get("/feed").handler(this::getFeedHandler);
     router.get("/links").handler(this::usersLinksHandler);
     router.get("/status").handler(this::serviceStatus);
     router.get("/likes/:imageId").handler(this::getImageLikesHandler);
     router.post("/likes/:imageId").handler(this::addImageLikesHandler);
+    // Start HTTP server
     httpServer.requestHandler(router::accept).listen(8080, ar -> {
       if (ar.succeeded()) {
         LOGGER.info("HTTP server is running on port 8080");
@@ -43,7 +48,40 @@ public class HttpVerticle extends AbstractVerticle {
   }
 
   private void getFeedHandler(RoutingContext ctx) {
-
+    String authToken = ctx.request().getHeader("X-NEMO-AUTH");
+    if (authToken == null) {
+      LOGGER.error("Missing AUTH token");
+      ctx.fail(new RuntimeException("Missing auth token"));
+    } else {
+      LOGGER.info("Fetching users links");
+      // Compose feed data
+      // ** Fetch links
+      linksService.getUserLinks(authToken, replay -> {
+        if (replay.succeeded()) {
+          // Images links
+          JsonArray linksArray = replay.result();
+          // ** Fetch likes
+          likesService.getImagesLikes(authToken, linksArray, likesAr -> {
+            if (likesAr.succeeded()) {
+              JsonArray linksLikesArray = likesAr.result();
+              // ** Fetch comments
+              commentsService.getImagesComments(authToken, linksLikesArray, commentsAr -> {
+                if (commentsAr.succeeded()) {
+                  JsonArray ja = commentsAr.result();
+                  ctx.response().putHeader("content-type", "application/json").end(ja.toString());
+                } else {
+                  ctx.fail(replay.cause());
+                }
+              });
+            } else {
+              ctx.fail(replay.cause());
+            }
+          });
+        } else {
+          ctx.fail(replay.cause());
+        }
+      });
+    }
   }
 
   private void addImageLikesHandler(RoutingContext ctx) {
