@@ -4,6 +4,8 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -64,6 +66,38 @@ public class LikesServiceImpl implements LikesService {
           resultHandler.handle(Future.failedFuture(ar.cause()));
         }
       });
+    return this;
+  }
+
+  public LikesService getImagesLikes(String authToken, JsonArray ja, Handler<AsyncResult<JsonArray>> resultHandler) {
+    LOGGER.info("Fetching image likes . . .");
+    JsonArray resultArray = new JsonArray();
+    for (Object o : ja) {
+      JsonObject link = (JsonObject) o;
+      String imageId = link.getString("_id");
+      webClient
+        .get("likes", "/v1/likes/" + imageId)
+        .putHeader("X-NEMO-AUTH", authToken)
+        .send(ar -> {
+          if (ar.succeeded()) {
+            HttpResponse<Buffer> response = ar.result();
+            if (response.statusCode() != 200) {
+              LOGGER.error("Error during fetching image likes, Status code: " + response.statusCode());
+              resultHandler.handle(Future.failedFuture(ar.cause()));
+            } else {
+              LOGGER.info("Image likes are here, sending response");
+              link.put("likes", response.bodyAsJsonObject().getValue("data"));
+              resultArray.add(link);
+              // Finish future
+              if (ja.size() == resultArray.size())
+                resultHandler.handle(Future.succeededFuture(resultArray));
+            }
+          } else {
+            LOGGER.error("Error during fetching image likes");
+            resultHandler.handle(Future.failedFuture(ar.cause()));
+          }
+        });
+    }
     return this;
   }
 }

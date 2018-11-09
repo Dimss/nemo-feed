@@ -3,6 +3,7 @@ package io.vertx.feed.http;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -22,6 +23,7 @@ public class HttpVerticle extends AbstractVerticle {
     likesService = LikesService.createProxy(vertx, "imageLikes");
     HttpServer httpServer = vertx.createHttpServer();
     Router router = Router.router(vertx);
+    router.get("/feed").handler(this::getFeedHandler);
     router.get("/links").handler(this::usersLinksHandler);
     router.get("/status").handler(this::serviceStatus);
     router.get("/likes/:imageId").handler(this::getImageLikesHandler);
@@ -35,6 +37,10 @@ public class HttpVerticle extends AbstractVerticle {
         startFuture.fail(ar.cause());
       }
     });
+  }
+
+  private void getFeedHandler(RoutingContext ctx) {
+
   }
 
   private void addImageLikesHandler(RoutingContext ctx) {
@@ -88,8 +94,8 @@ public class HttpVerticle extends AbstractVerticle {
       LOGGER.info("Fetching users links");
       linksService.getUserLinks(authToken, replay -> {
         if (replay.succeeded()) {
-          JsonObject jo = replay.result();
-          ctx.response().putHeader("content-type", "application/json").end(jo.toString());
+          JsonArray resultArray = replay.result();
+          ctx.response().putHeader("content-type", "application/json").end(resultArray.toString());
         } else {
           ctx.fail(replay.cause());
         }
