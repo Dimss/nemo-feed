@@ -18,7 +18,7 @@ public interface CommentsService {
   CommentsService getImagesComments(String authToken, JsonArray ja, Handler<AsyncResult<JsonArray>> resultHandler);
 
   @Fluent
-  CommentsService addComment(String authToken, String imageId, Handler<AsyncResult<JsonObject>> resultHandler);
+  CommentsService addComment(String authToken, JsonObject commentPayload, Handler<AsyncResult<JsonObject>> resultHandler);
 
   static CommentsService create(WebClient webClient, Handler<AsyncResult<CommentsService>> readyHandler) {
     return new CommentsServiceImpl(webClient, readyHandler);

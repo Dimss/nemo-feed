@@ -55,23 +55,23 @@ public class CommentsServiceImpl implements CommentsService {
     return this;
   }
 
-  public CommentsService addComment(String authToken, String imageId, Handler<AsyncResult<JsonObject>> resultHandler) {
-    LOGGER.info("Fetching image comments . . .");
+  public CommentsService addComment(String authToken, JsonObject commentPayload, Handler<AsyncResult<JsonObject>> resultHandler) {
+    LOGGER.info("Add image comment . . .");
     webClient
-      .post("comments", "/v1/comment/" + imageId)
+      .post("comments", "/v1/comments")
       .putHeader("X-NEMO-AUTH", authToken)
-      .send(ar -> {
+      .sendJsonObject(commentPayload, ar -> {
         if (ar.succeeded()) {
           HttpResponse<Buffer> response = ar.result();
           if (response.statusCode() != 200) {
-            LOGGER.error("Error during fetching image comments, Status code: " + response.statusCode());
+            LOGGER.error("Error during create new  image comment, Status code: " + response.statusCode());
             resultHandler.handle(Future.failedFuture(ar.cause()));
           } else {
-            LOGGER.info("Image comments are here, sending response");
+            LOGGER.info("Successfully create new comment");
             resultHandler.handle(Future.succeededFuture(response.bodyAsJsonObject()));
           }
         } else {
-          LOGGER.error("Error during fetching image comments");
+          LOGGER.error("Error during create new image comment");
           resultHandler.handle(Future.failedFuture(ar.cause()));
         }
       });
