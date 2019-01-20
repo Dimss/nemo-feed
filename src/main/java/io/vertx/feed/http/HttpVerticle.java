@@ -98,6 +98,7 @@ public class HttpVerticle extends AbstractVerticle {
           JsonArray linksArray = replay.result();
           String testToken = ctx.request().getHeader("X-APP-TEST");
           if (testToken == null) testToken = "empty-test-token";
+          LOGGER.info(String.format("X-APP-TEST - TEST TOKEN: %s", testToken));
           // ** Fetch likes
           likesService.getImagesLikes(authToken, testToken, linksArray, likesAr -> {
             if (likesAr.succeeded()) {
