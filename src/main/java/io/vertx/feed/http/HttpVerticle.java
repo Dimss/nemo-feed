@@ -90,7 +90,7 @@ public class HttpVerticle extends AbstractVerticle {
 
   private void getFeedHandler(RoutingContext ctx) {
     String authToken = ctx.request().getHeader("X-NEMO-AUTH");
-    String testToken = ctx.request().getHeader("X-APP-TEST");
+    String testToken = ctx.request().getHeader("X-APP-TEST") == null ? "empty-test-token" : ctx.request().getHeader("X-APP-TEST");
     String hostname = "";
     try {
       hostname = Inet4Address.getLocalHost().getHostName();
