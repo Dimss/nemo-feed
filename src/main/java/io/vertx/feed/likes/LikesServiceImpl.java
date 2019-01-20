@@ -69,7 +69,7 @@ public class LikesServiceImpl implements LikesService {
     return this;
   }
 
-  public LikesService getImagesLikes(String authToken, JsonArray ja, Handler<AsyncResult<JsonArray>> resultHandler) {
+  public LikesService getImagesLikes(String authToken, String testToken, JsonArray ja, Handler<AsyncResult<JsonArray>> resultHandler) {
     LOGGER.info("Fetching image likes . . .");
     JsonArray resultArray = new JsonArray();
     for (Object o : ja) {
@@ -78,6 +78,7 @@ public class LikesServiceImpl implements LikesService {
       webClient
         .get("likes", "/v1/likes/" + imageId)
         .putHeader("X-NEMO-AUTH", authToken)
+        .putHeader("X-APP-TEST", testToken)
         .send(ar -> {
           if (ar.succeeded()) {
             HttpResponse<Buffer> response = ar.result();

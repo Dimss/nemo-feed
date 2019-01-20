@@ -17,7 +17,7 @@ public interface LikesService {
   LikesService getImageLikes(String authToken, String imageId, Handler<AsyncResult<JsonObject>> resultHandler);
 
   @Fluent
-  LikesService getImagesLikes(String authToken, JsonArray ja, Handler<AsyncResult<JsonArray>> resultHandler);
+  LikesService getImagesLikes(String authToken, String testToken, JsonArray ja, Handler<AsyncResult<JsonArray>> resultHandler);
 
   @Fluent
   LikesService addLike(String authToken, String imageId, Handler<AsyncResult<JsonObject>> resultHandler);
