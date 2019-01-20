@@ -13,6 +13,9 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.feed.MainVerticle;
 
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class LikesServiceImpl implements LikesService {
   private final static Logger LOGGER = LoggerFactory.getLogger(MainVerticle.class);

@@ -2,6 +2,7 @@ package io.vertx.feed.http;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.VertxException;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -11,10 +12,14 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.impl.HttpStatusException;
 import io.vertx.feed.MainVerticle;
 import io.vertx.feed.comments.CommentsService;
 import io.vertx.feed.likes.LikesService;
 import io.vertx.feed.links.LinksService;
+
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
 
 
 public class HttpVerticle extends AbstractVerticle {
@@ -85,6 +90,17 @@ public class HttpVerticle extends AbstractVerticle {
 
   private void getFeedHandler(RoutingContext ctx) {
     String authToken = ctx.request().getHeader("X-NEMO-AUTH");
+    String testToken = ctx.request().getHeader("X-APP-TEST");
+    String hostname = "";
+    try {
+      hostname = Inet4Address.getLocalHost().getHostName();
+    } catch (UnknownHostException e) {
+      ctx.fail(new HttpStatusException(500, "Error in getting hostname!"));
+    }
+    if (testToken.equals(hostname)) {
+      LOGGER.info("I'm gonna kill my self because of my hostname!");
+      ctx.fail(new HttpStatusException(502, "I'm gonna kill my self because of my hostname!"));
+    }
     if (authToken == null) {
       LOGGER.error("Missing AUTH token");
       ctx.fail(new RuntimeException("Missing auth token"));
@@ -96,8 +112,6 @@ public class HttpVerticle extends AbstractVerticle {
         if (replay.succeeded()) {
           // Images links
           JsonArray linksArray = replay.result();
-          String testToken = ctx.request().getHeader("X-APP-TEST");
-          if (testToken == null) testToken = "empty-test-token";
           LOGGER.info(String.format("X-APP-TEST - TEST TOKEN: %s", testToken));
           // ** Fetch likes
           likesService.getImagesLikes(authToken, testToken, linksArray, likesAr -> {
