@@ -95,45 +95,47 @@ public class HttpVerticle extends AbstractVerticle {
     try {
       hostname = Inet4Address.getLocalHost().getHostName();
     } catch (UnknownHostException e) {
-      ctx.fail(new HttpStatusException(500, "Error in getting hostname!"));
+      LOGGER.error("Error getting hostname!");
+      ctx.fail(500);
     }
     if (testToken.equals(hostname)) {
       LOGGER.info("I'm gonna kill my self because of my hostname!");
-      ctx.fail(new HttpStatusException(502, "I'm gonna kill my self because of my hostname!"));
-    }
-    if (authToken == null) {
-      LOGGER.error("Missing AUTH token");
-      ctx.fail(new RuntimeException("Missing auth token"));
+      ctx.fail(502);
     } else {
-      LOGGER.info("Fetching users links");
-      // Compose feed data
-      // ** Fetch links
-      linksService.getUserLinks(authToken, replay -> {
-        if (replay.succeeded()) {
-          // Images links
-          JsonArray linksArray = replay.result();
-          LOGGER.info(String.format("X-APP-TEST - TEST TOKEN: %s", testToken));
-          // ** Fetch likes
-          likesService.getImagesLikes(authToken, testToken, linksArray, likesAr -> {
-            if (likesAr.succeeded()) {
-              JsonArray linksLikesArray = likesAr.result();
-              // ** Fetch comments
-              commentsService.getImagesComments(authToken, linksLikesArray, commentsAr -> {
-                if (commentsAr.succeeded()) {
-                  JsonArray ja = commentsAr.result();
-                  ctx.response().putHeader("content-type", "application/json").end(ja.toString());
-                } else {
-                  ctx.fail(replay.cause());
-                }
-              });
-            } else {
-              ctx.fail(replay.cause());
-            }
-          });
-        } else {
-          ctx.fail(replay.cause());
-        }
-      });
+      if (authToken == null) {
+        LOGGER.error("Missing AUTH token");
+        ctx.fail(new RuntimeException("Missing auth token"));
+      } else {
+        LOGGER.info("Fetching users links");
+        // Compose feed data
+        // ** Fetch links
+        linksService.getUserLinks(authToken, replay -> {
+          if (replay.succeeded()) {
+            // Images links
+            JsonArray linksArray = replay.result();
+            LOGGER.info(String.format("X-APP-TEST - TEST TOKEN: %s", testToken));
+            // ** Fetch likes
+            likesService.getImagesLikes(authToken, testToken, linksArray, likesAr -> {
+              if (likesAr.succeeded()) {
+                JsonArray linksLikesArray = likesAr.result();
+                // ** Fetch comments
+                commentsService.getImagesComments(authToken, linksLikesArray, commentsAr -> {
+                  if (commentsAr.succeeded()) {
+                    JsonArray ja = commentsAr.result();
+                    ctx.response().putHeader("content-type", "application/json").end(ja.toString());
+                  } else {
+                    ctx.fail(replay.cause());
+                  }
+                });
+              } else {
+                ctx.fail(replay.cause());
+              }
+            });
+          } else {
+            ctx.fail(replay.cause());
+          }
+        });
+      }
     }
   }
 
